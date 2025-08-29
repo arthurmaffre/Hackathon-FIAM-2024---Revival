@@ -1,0 +1,181 @@
+load_data:
+  hackathon_csv_path: '../data/raw_data/hackathon_sample_v2.csv'                # Path to the hackathon CSV file.
+  stocks_prices_parquet_path: '../data/raw_data/stock_prices.parquet'           # Path to the stock prices parquet file.
+  mapping_stocks_country_excel_path: '../data/raw_data/us_stocks_list.xlsx'     # Path to the Excel file containing stock-country mappings.
+  sp500_csv_path: '../data/raw_data/SP500_daily.csv'                            # Path to the S&P 500 daily data CSV file.
+  vix_csv_path: '../data/raw_data/VIX.csv'                                      # Path to the VIX (Volatility Index) data CSV file.
+  macro_data_csv_path: '../data/raw_data/macro_data_us.csv'                     # Path to the macroeconomic data CSV file.
+  us_stocks_sectors_csv_path: '../data/raw_data/us_stocks_sectors.csv'          # Path to the US stocks sectors CSV file.
+
+preprocess_data:
+  col_to_count: 'stock_ticker'                                                  # Column to count for filtering stocks.
+  drop_threshold: 12                                                            # Threshold for dropping stocks with fewer occurrences than this value.
+  save_data: True                                                               # Whether to save the preprocessed data.
+  preprocess_data_path: '../data/intermediate_data/preprocess_data/'            # Path to save the preprocessed data.
+
+add_more_variables:
+  use_existing_options_indicators: True                                         # Whether to use pre-existing options indicators or calculate new ones.
+  options_before_2010_path: '../data/raw_data/options_data_before_2010.parquet' # Path to options data before 2010.
+  options_after_2010_path: '../data/raw_data/options_data_after_2010.parquet'   # Path to options data after 2010.
+  hackathon_df_preprocessed_path: '../data/intermediate_data/preprocess_data/hackathon_df_preprocessed.csv' # Path to preprocessed hackathon data.
+  options_indicators_path: '../data/intermediate_data/options_features/options_indicators.csv' # Path to save options indicators data.
+  save_data: True                                                               # Whether to save the additional variables.
+  add_more_variables_path: '../data/intermediate_data/add_more_variables/'      # Path to save the additional variables.
+
+compute_returns:
+  return_type: 'arithmetic'                     # Type of return to compute, e.g., 'arithmetic' or 'logarithmic'.
+  binarize: False                               # Whether to binarize the returns (convert to binary).
+  save_data: True                               # Whether to save the computed returns.
+  compute_returns_path: '../data/intermediate_data/compute_returns/' # Path to save the computed returns.
+
+prepare_data_for_prediction:
+  shift_dict: {'stock_exret': 1, 'eps_meanest': 1, 'eps_medest': 1, 'eps_stdevest': 1}  # Dictionary of columns to shift for lagging data.
+  target_col: 'stock_exret'                         # The target column for prediction (dependent variable).
+  drop_cols: ['ret_eom', 'permno', 'shrcd', 'exchcd', 'year', 'month', 'size_port', 'cusip', 'comp_name'] # Columns to drop from the data.
+  do_forward_filling: True                          # Whether to forward-fill missing values in the data.
+  save_data: True                                   # Whether to save the data prepared for prediction.
+  prepare_data_for_prediction_path: '../data/intermediate_data/prepare_data_for_prediction/' # Path to save the prepared data.
+
+prediction_pipeline:
+  use_existing_predictions: False           # Whether to use pre-existing predictions from a trained model.
+  end_train: "2010-12-31"                   # Date marking the end of the training data period.
+  end_val: "2012-12-31"                     # Date marking the end of the validation data period.
+  lags: 6                                   # Number of lag periods to include as predictors.
+  optimize_hyperparameters: True            # Whether to optimize the model's hyperparameters.
+  tuning_method: "bayes"                    # Method for hyperparameter tuning, either 'grid' or 'bayes' (Bayesian search is recommended).
+
+  lags_grid: [ 12, 24 ]                     # Grid of lag values to test during hyperparameter optimization.
+  grid_search_params:                       # Parameters for grid search tuning.
+    'steps': 1                              # Number of prediction steps.
+    'metric': ['mean_squared_error']         # Metric to optimize (MSE in this case).
+    'aggregate_metric': 'average'           # Aggregation method for multiple series.
+    'fixed_train_size': True                # Keep training size fixed during backtesting.
+    'gap': 0                                # Gap between training and test data (no gap here).
+    'skip_folds': null                      # Option to skip certain folds (not used here).
+    'allow_incomplete_fold': True           # Allow incomplete data folds during cross-validation.
+    'levels': null                          # Specific levels for optimization (if applicable).
+    'refit': False                          # Whether to refit the model after hyperparameter tuning.
+    'return_best': True                     # Return the model with the best parameters.
+    'n_jobs': 'auto'                        # Number of CPU cores to use ('auto' uses all available cores).
+    'verbose': False                        # Verbosity level for logging during tuning.
+    'show_progress': True                   # Show a progress bar during tuning.
+    'suppress_warnings': False              # Whether to suppress warnings during tuning.
+    'output_file': null                     # Path to save tuning output, if needed.
+
+  backtest_params:                          # Parameters for model backtesting.
+    'steps': 1                              # Number of prediction steps.
+    'metric': ['mean_squared_error']         # Metric to use for evaluating predictions.
+    'fixed_train_size': False               # Whether to keep the training size fixed (False means training size will grow).
+    'gap': 0                                # Gap between training and test data.
+    'skip_folds': null                      # Skipping specific folds in cross-validation (if any).
+    'allow_incomplete_fold': True           # Allow incomplete folds in backtesting.
+    'levels': null                          # Levels for multi-series forecasting (not applicable here).
+    'add_aggregated_metric': True           # Aggregate metrics across multiple series.
+    'refit': False                          # Whether to refit the model during backtesting.
+    'interval': null                        # Prediction interval (not used here).
+    'n_boot': 500                           # Number of bootstrap iterations for interval estimation.
+    'random_state': 123                     # Seed for reproducibility.
+    'in_sample_residuals': False            # Whether to use in-sample residuals for intervals.
+    'n_jobs': 'auto'                        # Number of CPU cores to use.
+    'verbose': False                        # Verbosity level for backtesting.
+    'show_progress': True                   # Show progress bar during backtesting.
+    'suppress_warnings': True               # Suppress warnings during backtesting.
+
+  forecaster_params:                        # Parameters for forecaster configuration.
+    'encoding': 'ordinal_category'          # Encoding method for categorical variables.
+    'transformer_series': null              # Optional transformer for time series.
+    'transformer_exog': null                # Optional transformer for exogenous variables.
+    'weight_func': null                     # Optional weighting function for observations.
+    'series_weights': null                  # Weights for individual series.
+    'differentiation': null                 # Differentiation order for time series.
+    'dropna_from_series': False             # Whether to drop missing values from the series.
+    'fit_kwargs': null                      # Additional keyword arguments for model fitting.
+    'forecaster_id': null                   # Identifier for the forecaster.
+
+  bayes_search_params:                      # Parameters for Bayesian hyperparameter tuning.
+    'steps': 1                              # Number of steps to predict.
+    'metric': ['mean_squared_error']         # Metric to optimize during Bayesian search.
+    'aggregate_metric': 'average'           # How to aggregate metrics across multiple series.
+    'fixed_train_size': True                # Fixed training size during cross-validation.
+    'gap': 0                                # No gap between training and testing.
+    'skip_folds': null                      # Skipping certain folds in cross-validation.
+    'allow_incomplete_fold': True           # Allow incomplete data folds.
+    'levels': null                          # Levels for optimization (optional).
+    'refit': False                          # Refit the model after tuning.
+    'return_best': True                     # Return the best model configuration.
+    'n_trials': 10                          # Number of trials for the Bayesian search.
+    'random_state': 123                     # Seed for reproducibility.
+    'n_jobs': 'auto'                        # Use all available cores for optimization.
+    'verbose': False                        # Minimal verbosity.
+    'show_progress': True                   # Show progress during Bayesian search.
+    'suppress_warnings': False              # Display warnings during tuning.
+    'engine': 'optuna'                      # Optimization engine (Optuna in this case).
+    'kwargs_create_study': {'direction': 'minimize'} # Additional arguments for creating the Optuna study.
+    'kwargs_study_optimize': {}             # Additional arguments for optimizing the study.
+
+  save_data: True                           # Whether to save prediction pipeline results.
+  prediction_pipeline_path: '../data/intermediate_data/prediction_pipeline/' # Path to save the pipeline output.
+
+evaluate_model_performance:
+  metrics: {"mean_squared_error": {}, "mean_absolute_error": {}, "r2_score_oos": {}} # Metrics for evaluating the model performance.
+  save_data: True                           # Whether to save the model performance metrics.
+  evaluate_model_performance_path: '../data/intermediate_data/evaluate_model_performance/' # Path to save the performance evaluation.
+
+model_explainability:
+  max_display: 10                                  # Maximum number of features to display in the model explainability plot.
+  save_path: '../plots/'                           # Whether to save the model explainability data.
+  model_explainability_path: '../data/intermediate_data/model_explainability/' # Path to save the model explainability data.
+
+create_long_short_portfolio:
+  ranking_strategy: "simple"                # Strategy for ranking stocks in long/short portfolios.
+  ascending: True                           # Whether to rank in ascending order (True for increasing order).
+  method: 'first'                           # Method for breaking ties when ranking stocks.
+  fix_threshold: 25                         # Threshold for selecting stocks based on rank.
+  save_data: True                           # Whether to save the generated long/short portfolio.
+  create_long_short_portfolio_path: '../data/intermediate_data/create_long_short_portfolio/' # Path to save the long/short portfolio data.
+
+compute_bear_regime_probabilities:
+  start_date: '2000-01-01'                  # Start date for computing bear regime probabilities.
+  rolling_windows: [6, 14]                  # Rolling windows (in months) for estimating bear market probabilities.
+  jump_penalty: 1000                        # Penalty for jumping between regimes.
+  beta_bear: 0.2                            # Maximum short allocation during bear markets.
+  beta_bull: 0.5                            # Maximum long allocation during bull markets.
+  save_data: True                           # Whether to save the bear regime probabilities.
+  compute_bear_regime_probabilities_path: '../data/intermediate_data/compute_bear_regime_probabilities/' # Path to save bear regime data.
+
+weighting:
+  method_mu: hist                           # Method for estimating expected returns ('hist' for historical, 'ewma1', etc.).
+  method_cov: ledoit                        # Method for estimating covariance ('ledoit' for Ledoit-Wolf, 'ewma1', etc.).
+  model: Classic                            # Optimization model to use (e.g., 'Classic', 'BL' for Black-Litterman).
+  rm: MV                                    # Risk measure (e.g., 'MV' for standard deviation, 'MAD', 'CVaR', etc.).
+  obj: Sharpe                               # Objective function (e.g., 'Sharpe' to maximize risk-adjusted return).
+  rf: 0                                     # Risk-free rate to use in the optimization.
+  l: 0                                      # Risk aversion parameter (for utility maximization).
+  hist: True                                # Whether to use historical data in the optimization.
+  window: 1000                              # Look-back window size in days for returns data.
+  budget: 1.0                               # Total budget for the portfolio (usually 1.0).
+  max_weight_long: 0.1                      # Maximum weight for a single long asset (positive weight).
+  min_weight_long: 0.001                    # Minimum weight for a single long asset (positive weight).
+  max_turnover: 0.25                        # Maximum turnover for the portfolio (25%).
+  save_data: True                           # Whether to save the resulting portfolio weights.
+  weighting_path: '../data/intermediate_data/weighting/' # Path to save the portfolio weights data.
+
+compute_drifted_weights:
+  save_data: True
+  compute_drifted_weights_path: '../data/intermediate_data/drifted_weights/'
+
+compute_strategy_returns:
+  save_data: True
+  compute_strategy_returns_path: '../data/intermediate_data/strategy_returns/'
+
+analyze_strategy_returns:
+  rf: 0.0
+  periods_per_year: 252
+  annualize: True
+  grayscale: False
+  output: "backtesting_report"
+  match_dates: True
+  open_in_browser: True
+  save_data: True
+  dest_folder: '../reports'
+  analyze_strategy_returns_path: ../data/intermediate_data/analyze_strategy_returns/

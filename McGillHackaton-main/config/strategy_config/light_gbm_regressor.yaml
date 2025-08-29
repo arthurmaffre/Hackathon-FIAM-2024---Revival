@@ -1,0 +1,45 @@
+prediction_pipeline:
+  estimator_name: "light_gbm_regressor"
+  regressor_dict:
+    boosting_type: "gbdt"            # Type de boosting
+    num_leaves: 31                   # Nombre maximum de feuilles dans un arbre
+    max_depth: -1                    # Profondeur maximale de l'arbre (-1 signifie aucune limite)
+    learning_rate: 0.1               # Taux d'apprentissage
+    n_estimators: 100                # Nombre d'arbres boostés à utiliser
+    subsample_for_bin: 200000        # Nombre d'échantillons à utiliser pour construire les histogrammes de binning
+    objective: null                  # Objectif à optimiser
+    class_weight: null               # Poids de la classe pour le classificateur
+    min_split_gain: 0.0              # Gain minimum à obtenir pour fractionner un noeud
+    min_child_weight: 0.001          # Somme minimale des poids des observations requise dans un noeud enfant
+    min_child_samples: 20            # Nombre minimum d'échantillons requis pour un noeud enfant
+    subsample: 1.0                   # Fraction des données à utiliser pour chaque arbre
+    subsample_freq: 0                # Fréquence de sous-échantillonnage
+    colsample_bytree: 1.0            # Fraction des features à considérer lors de la construction de chaque arbre
+    reg_alpha: 0.0                   # Terme de régularisation L1
+    reg_lambda: 0.0                  # Terme de régularisation L2
+    random_state: 42              # Graine aléatoire pour la reproductibilité
+    n_jobs: null                     # Nombre de jobs à utiliser pour l'entraînement
+    importance_type: "split"         # Type d'importance des features
+
+  bayes_search_params_grid:
+    num_leaves: "(20, 50)"           # Intervalle pour num_leaves
+    max_depth: "(5, 15)"             # Intervalle pour max_depth
+    learning_rate: "(0.01, 0.3)"     # Intervalle pour learning_rate
+    n_estimators: "(50, 300)"        # Intervalle pour n_estimators
+    subsample: "(0.5, 1.0)"          # Intervalle pour subsample
+    colsample_bytree: "(0.5, 1.0)"   # Intervalle pour colsample_bytree
+    reg_alpha: "(0.0, 0.5)"          # Intervalle pour reg_alpha
+    reg_lambda: "(0.0, 0.5)"         # Intervalle pour reg_lambda
+
+  grid_search_params_grid:
+    num_leaves: [31, 40, 50]
+    max_depth: [5, 10, 15]
+    learning_rate: [0.01, 0.05, 0.1]
+    n_estimators: [100, 150, 200]
+    subsample: [0.8, 1.0]
+    colsample_bytree: [0.8, 1.0]
+    reg_alpha: [0.0, 0.1, 0.2]
+    reg_lambda: [0.0, 0.1, 0.2]
+
+analyze_strategy_returns:
+  strategy_name: "LightGBM_Regressor"

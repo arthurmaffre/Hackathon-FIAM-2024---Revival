@@ -1,0 +1,43 @@
+prediction_pipeline:
+  estimator_name: "extra_trees_regressor"
+  estimator_params:
+    n_estimators: 100
+    criterion: "squared_error"
+    max_depth: null
+    min_samples_split: 2
+    min_samples_leaf: 1
+    min_weight_fraction_leaf: 0.0
+    max_features: 1.0
+    max_leaf_nodes: null
+    min_impurity_decrease: 0.0
+    bootstrap: False
+    oob_score: False
+    n_jobs: null
+    random_state: 42
+    verbose: 0
+    warm_start: False
+    ccp_alpha: 0.5
+    max_samples: null
+    monotonic_cst: null
+
+  bayes_search_params_grid:
+    n_estimators: "(50, 300)"        # Range of n_estimators to explore
+    max_depth: "(5, 20)"             # Range for max_depth, include None if testing unbounded depth
+    min_samples_split: "(2, 10)"     # Range for min_samples_split
+    min_samples_leaf: "(1, 5)"       # Range for min_samples_leaf
+    max_features: "(0.1, 1.0)"       # Range for max_features, ratio of features considered at each split
+    ccp_alpha: "(0.0, 0.5)"          # Range for complexity parameter for pruning
+    bootstrap: [ True, False ]         # Categorical options for bootstrap sampling
+
+
+  grid_search_params_grid:
+    n_estimators: [50, 100, 200]
+    criterion: ["squared_error"]  # Critères pour ExtraTreesRegressor
+    max_depth: [7, 10]
+    min_samples_split: [2]
+    min_samples_leaf: [1]
+    max_features: ["sqrt"]  # max_features adapté aux valeurs valides
+    ccp_alpha: [0.2]
+
+analyze_strategy_returns:
+  strategy_name: "Extra_Trees_Regressor"

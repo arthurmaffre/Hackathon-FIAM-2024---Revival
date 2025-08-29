@@ -1,0 +1,46 @@
+prediction_pipeline:
+  estimator_name: "hist_gradient_boosting_regressor"
+  regressor_dict:
+    loss: "squared_error"           # Fonction de perte (erreur quadratique)
+    learning_rate: 0.1              # Taux d'apprentissage
+    max_iter: 100                   # Nombre maximal d'itérations
+    max_leaf_nodes: 31              # Nombre maximal de feuilles par arbre
+    max_depth: null                 # Profondeur maximale des arbres (non contraint)
+    min_samples_leaf: 20            # Nombre minimal d'échantillons par feuille
+    l2_regularization: 0.0          # Régularisation L2 (0 pour désactiver)
+    max_features: 1.0               # Proportion de caractéristiques utilisées dans les divisions
+    max_bins: 255                   # Nombre maximal de bacs pour les valeurs non manquantes
+    categorical_features: null      # Indique les caractéristiques catégorielles
+    monotonic_cst: null             # Contraintes monotones (augmentation/diminution)
+    interaction_cst: null           # Contraintes d'interaction entre caractéristiques
+    warm_start: False               # Redémarrage à chaud pour continuer à entraîner sur l'ancien modèle
+    early_stopping: "auto"          # Arrêt anticipé si échantillon > 10 000
+    scoring: "loss"                 # Métrique utilisée pour l'arrêt anticipé (perte)
+    validation_fraction: 0.1        # Fraction de validation pour l'arrêt anticipé
+    n_iter_no_change: 10            # Nombre d'itérations sans amélioration avant arrêt anticipé
+    tol: 0.000001                   # Tolérance pour l'arrêt anticipé
+    verbose: 1                      # Niveau de verbosité (0 = silencieux)
+    random_state: null              # État aléatoire pour la reproductibilité
+
+  bayes_search_params_grid:
+    learning_rate: "(0.001, 0.2)"   # Range pour le taux d'apprentissage
+    max_iter: "(50, 300)"           # Range pour le nombre maximal d'itérations
+    max_leaf_nodes: "(10, 50)"      # Range pour le nombre maximal de feuilles
+    min_samples_leaf: "(5, 50)"     # Range pour le nombre minimal d'échantillons par feuille
+    l2_regularization: "(0.0, 1.0)" # Range pour la régularisation L2
+    max_bins: "(64, 255)"           # Range pour le nombre maximal de bacs pour les valeurs non manquantes
+    max_features: "(0.1, 1.0)"      # Range pour la proportion de caractéristiques utilisées dans les divisions
+    early_stopping: [True, False]   # Activer ou désactiver l'arrêt anticipé
+
+  grid_search_params_grid:
+    learning_rate: [0.01, 0.1, 0.2]  # Valeurs spécifiques pour le taux d'apprentissage
+    max_iter: [100, 200]             # Valeurs spécifiques pour le nombre d'itérations
+    max_leaf_nodes: [15, 31]         # Valeurs spécifiques pour le nombre de feuilles
+    min_samples_leaf: [10, 20, 30]   # Valeurs spécifiques pour le nombre minimal d'échantillons
+    l2_regularization: [0.0, 0.1]    # Valeurs spécifiques pour la régularisation L2
+    max_bins: [128, 255]             # Valeurs spécifiques pour le nombre maximal de bacs
+    max_features: [0.5, 1.0]         # Proportion de caractéristiques utilisées dans les divisions
+    early_stopping: [True, False]    # Activer ou désactiver l'arrêt anticipé
+
+analyze_strategy_returns:
+  strategy_name: "hist_gradient_boosting"

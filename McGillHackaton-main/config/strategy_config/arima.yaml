@@ -1,0 +1,3 @@
+prediction_pipeline:
+  estimator_name: "arima"
+  regressor_dict: {}
